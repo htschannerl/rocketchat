@@ -1,49 +1,82 @@
 version: "3.7"
 
-volumes:
-  mongodb_data: { driver: local }
+networks:
+  web:
+    external: true
 
 services:
   rocketchat:
-    image: registry.rocket.chat/rocketchat/rocket.chat:${RELEASE:-latest}
-    restart: on-failure
-    labels:
-      traefik.enable: 'true'
-      traefik.routers.rocketchat.rule: Host(`${DOMAIN}`)
-      traefik.http.routers.rocketchat.tls: 'true'
-      traefik.http.routers.rocketchat.entrypoints: https
-      traefik.http.routers.rocketchat.tls.certresolver: le
+    container_name: rocketchat
+    image: rocketchat/rocket.chat:4.8.1
+    restart: always
     environment:
-      MONGO_URL: "${MONGO_URL:-\
-        mongodb://${MONGODB_ADVERTISED_HOSTNAME:-mongodb}:${MONGODB_INITIAL_PRIMARY_PORT_NUMBER:-27017}/\
-          ${MONGODB_DATABASE:-rocketchat}?replicaSet=${MONGODB_REPLICA_SET_NAME:-rs0}}"
-      MONGO_OPLOG_URL: "${MONGO_OPLOG_URL:\
-        -mongodb://${MONGODB_ADVERTISED_HOSTNAME:-mongodb}:${MONGODB_INITIAL_PRIMARY_PORT_NUMBER:-27017}/\
-          local?replicaSet=${MONGODB_REPLICA_SET_NAME:-rs0}}"
-      ROOT_URL: ${ROOT_URL:-http://localhost:${HOST_PORT:-3000}}
-      PORT: ${PORT:-3000}
-    depends_on:
-      - mongodb   
-    expose:
-      - ${PORT:-3000}
-    ports:
-      - host_ip: ${BIND_IP:-0.0.0.0}
-        target: ${PORT:-3000}
-        published: ${HOST_PORT:-3000}
-        protocol: tcp
-        mode: host
-
-  mongodb:
-    image: docker.io/bitnami/mongodb:${MONGODB_VERSION:-4.4}
-    restart: on-failure
+      MONGO_URL: "mongodb://rocketchat-mongodb:27017/rocketchat"
+      MONGO_OPLOG_URL: "mongodb://rocketchat-mongodb:27017/local?replSet=rs01"
+      ROOT_URL: https://chat.tschannerl.com:8443
+      PORT: 3000
     volumes:
-      - mongodb_data:/bitnami/mongodb
-    environment:
-      MONGODB_REPLICA_SET_MODE: primary
-      MONGODB_REPLICA_SET_NAME: ${MONGODB_REPLICA_SET_NAME:-rs0}
-      MONGODB_PORT_NUMBER: ${MONGODB_PORT_NUMBER:-27017}
-      MONGODB_INITIAL_PRIMARY_HOST: ${MONGODB_INITIAL_PRIMARY_HOST:-mongodb}
-      MONGODB_INITIAL_PRIMARY_PORT_NUMBER: ${MONGODB_INITIAL_PRIMARY_PORT_NUMBER:-27017}
-      MONGODB_ADVERTISED_HOSTNAME: ${MONGODB_ADVERTISED_HOSTNAME:-mongodb}
-      MONGODB_ENABLE_JOURNAL: ${MONGODB_ENABLE_JOURNAL:-true}
-      ALLOW_EMPTY_PASSWORD: ${ALLOW_EMPTY_PASSWORD:-yes}
+      - ./uploads:/app/uploads
+    depends_on:
+      - rocketchat-mongodb
+      - pihole
+    networks:
+      - web
+    dns:
+      - "172.18.254.254"
+      - "1.1.1.1"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.rocketchat.entrypoints=http"
+      - "traefik.http.routers.rocketchat.rule=Host(`chat.tschannerl.com`)"
+      - "traefik.http.middlewares.rocketchat-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.rocketchat-https-redirect.redirectscheme.port=443"
+      - "traefik.http.routers.rocketchat.middlewares=traefik-https-redirect"
+      - "traefik.http.routers.rocketchat-secure.entrypoints=https"
+      - "traefik.http.routers.rocketchat-secure.rule=Host(`chat.tschannerl.com`)"
+      - "traefik.http.routers.rocketchat-secure.tls=true"
+      - "traefik.http.routers.rocketchat-secure.tls.certresolver=mytlschallenge"
+      - "traefik.http.routers.rocketchat-secure.service=rocketchat"
+      - "traefik.http.services.rocketchat.loadbalancer.server.port=3000"
+
+      - "traefik.http.routers.rocketchat-secure2.entrypoints=https2"
+      - "traefik.http.routers.rocketchat-secure2.rule=Host(`chat.tschannerl.com`)"
+      - "traefik.http.routers.rocketchat-secure2.tls=true"
+      - "traefik.http.routers.rocketchat-secure2.tls.certresolver=mytlschallenge"
+      - "traefik.http.routers.rocketchat-secure2.service=rocketchat"
+
+      - "traefik.docker.network=web"
+
+  rocketchat-mongodb:
+    container_name: rocketchat-mongodb
+    image: mongo:4.4
+    command: mongod --oplogSize 128 --replSet rs0
+    restart: always
+    depends_on:
+      - pihole
+    volumes:
+      - /database/rocketchat/mongo/data:/data/db
+      - /database/rocketchat/mongo/dump:/dump
+      - /database/rocketchat/mongo/configdb:/data/configdb
+    labels:
+      - traefik.enable=false
+    dns:
+      - "172.18.254.254"
+      - "1.1.1.1"
+    networks:
+      - web
+
+  rocketchat-mongo-init-replica:
+    container_name: rocketchat-mongo-init-replica
+    image: mongo:4.4
+    command: 'bash -c "for i in `seq 1 30`; do mongo rocketchat-mongodb/rocketchat --eval \"rs.initiate({ _id: ''rs0'', members: [ { _id: 0, host: ''localhost:27017'' } ]})\" && s=$$? && break || s=$$?; echo \"Tried $$i times. Waiting 5 secs...\"; sleep 5; done; (exit $$s)"'
+    depends_on:
+      - rocketchat-mongodb
+      - pihole
+    dns:
+      - "172.18.254.254"
+      - "1.1.1.1"
+    networks:
+      - web
+    volumes:
+      - /database/rocketchat/mongoinit/data:/data/db
+      - /database/rocketchat/mongoinit/configdb:/data/configdb

@@ -7,7 +7,7 @@ networks:
 services:
   rocketchat:
     container_name: rocketchat
-    image: rocketchat/rocket.chat:4.8.1
+    image: rocketchat/rocket.chat:4.8.2
     restart: always
     environment:
       MONGO_URL: "mongodb://rocketchat-mongodb:27017/rocketchat"
@@ -45,6 +45,7 @@ services:
       - "traefik.http.routers.rocketchat-secure2.service=rocketchat"
 
       - "traefik.docker.network=web"
+      - "com.centurylinklabs.watchtower.scope=autoupdate"
 
   rocketchat-mongodb:
     container_name: rocketchat-mongodb
@@ -59,6 +60,7 @@ services:
       - /database/rocketchat/mongo/configdb:/data/configdb
     labels:
       - traefik.enable=false
+      - "com.centurylinklabs.watchtower.scope=autoupdate"
     dns:
       - "172.18.254.254"
       - "1.1.1.1"
@@ -80,3 +82,5 @@ services:
     volumes:
       - /database/rocketchat/mongoinit/data:/data/db
       - /database/rocketchat/mongoinit/configdb:/data/configdb
+    labels:
+      - "com.centurylinklabs.watchtower.scope=autoupdate"

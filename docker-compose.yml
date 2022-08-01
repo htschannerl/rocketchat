@@ -7,11 +7,11 @@ networks:
 services:
   rocketchat:
     container_name: rocketchat
-    image: rocketchat/rocket.chat:4.8.2
+    image: rocketchat/rocket.chat:latest
     restart: always
     environment:
-      MONGO_URL: "mongodb://rocketchat-mongodb:27017/rocketchat"
-      MONGO_OPLOG_URL: "mongodb://rocketchat-mongodb:27017/local?replSet=rs01"
+      MONGO_URL: "mongodb://rocketchat-mongodb:27017/rocketchat?replicaSet=rs0&directConnection=true"
+      MONGO_OPLOG_URL: "mongodb://rocketchat-mongodb:27017/local?replSet=rs01&directConnection=true"
       ROOT_URL: https://chat.tschannerl.com:8443
       PORT: 3000
     volumes:

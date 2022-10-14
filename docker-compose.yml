@@ -52,9 +52,9 @@ services:
     command: mongod --oplogSize 128 --replSet rs0
     restart: always
     volumes:
-      - /database/rocketchat/mongo/data:/data/db
-      - /database/rocketchat/mongo/dump:/dump
-      - /database/rocketchat/mongo/configdb:/data/configdb
+      - ./data/rocketchat/mongo/data:/data/db
+      - ./data/rocketchat/mongo/dump:/dump
+      - ./data/rocketchat/mongo/configdb:/data/configdb
     labels:
       - traefik.enable=false
       - "com.centurylinklabs.watchtower.scope=autoupdate"
@@ -76,7 +76,7 @@ services:
     networks:
       - web
     volumes:
-      - /database/rocketchat/mongoinit/data:/data/db
-      - /database/rocketchat/mongoinit/configdb:/data/configdb
+      - ./data/rocketchat/mongoinit/data:/data/db
+      - ./data/rocketchat/mongoinit/configdb:/data/configdb
     labels:
       - "com.centurylinklabs.watchtower.scope=autoupdate"

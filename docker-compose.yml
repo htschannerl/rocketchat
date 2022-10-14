@@ -18,7 +18,6 @@ services:
       - ./uploads:/app/uploads
     depends_on:
       - rocketchat-mongodb
-      - pihole
     networks:
       - web
     dns:
@@ -52,8 +51,6 @@ services:
     image: mongo:4.4
     command: mongod --oplogSize 128 --replSet rs0
     restart: always
-    depends_on:
-      - pihole
     volumes:
       - /database/rocketchat/mongo/data:/data/db
       - /database/rocketchat/mongo/dump:/dump
@@ -73,7 +70,6 @@ services:
     command: 'bash -c "for i in `seq 1 30`; do mongo rocketchat-mongodb/rocketchat --eval \"rs.initiate({ _id: ''rs0'', members: [ { _id: 0, host: ''localhost:27017'' } ]})\" && s=$$? && break || s=$$?; echo \"Tried $$i times. Waiting 5 secs...\"; sleep 5; done; (exit $$s)"'
     depends_on:
       - rocketchat-mongodb
-      - pihole
     dns:
       - "172.18.254.254"
       - "1.1.1.1"

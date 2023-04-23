@@ -44,7 +44,7 @@ services:
       - "traefik.http.routers.rocketchat-secure2.service=rocketchat"
 
       - "traefik.docker.network=web"
-      - "com.centurylinklabs.watchtower.scope=notify"
+      - "com.centurylinklabs.watchtower.scope=autoupdate"
 
   rocketchat-mongodb:
     container_name: rocketchat-mongodb

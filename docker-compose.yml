@@ -37,12 +37,6 @@ services:
       - "traefik.http.routers.rocketchat-secure.service=rocketchat"
       - "traefik.http.services.rocketchat.loadbalancer.server.port=3000"
 
-      - "traefik.http.routers.rocketchat-secure2.entrypoints=https2"
-      - "traefik.http.routers.rocketchat-secure2.rule=Host(`chat.tschannerl.com`)"
-      - "traefik.http.routers.rocketchat-secure2.tls=true"
-      - "traefik.http.routers.rocketchat-secure2.tls.certresolver=mytlschallenge"
-      - "traefik.http.routers.rocketchat-secure2.service=rocketchat"
-
       - "traefik.docker.network=web"
       - "com.centurylinklabs.watchtower.scope=autoupdate"
 

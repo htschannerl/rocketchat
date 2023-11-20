@@ -24,21 +24,20 @@ services:
       - "172.18.254.254"
       - "1.1.1.1"
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.rocketchat.entrypoints=http"
-      - "traefik.http.routers.rocketchat.rule=Host(`chat.tschannerl.com`)"
-      - "traefik.http.middlewares.rocketchat-https-redirect.redirectscheme.scheme=https"
-      - "traefik.http.middlewares.rocketchat-https-redirect.redirectscheme.port=443"
-      - "traefik.http.routers.rocketchat.middlewares=traefik-https-redirect"
-      - "traefik.http.routers.rocketchat-secure.entrypoints=https"
-      - "traefik.http.routers.rocketchat-secure.rule=Host(`chat.tschannerl.com`)"
-      - "traefik.http.routers.rocketchat-secure.tls=true"
-      - "traefik.http.routers.rocketchat-secure.tls.certresolver=mytlschallenge"
-      - "traefik.http.routers.rocketchat-secure.service=rocketchat"
-      - "traefik.http.services.rocketchat.loadbalancer.server.port=3000"
-
-      - "traefik.docker.network=web"
-      - "com.centurylinklabs.watchtower.scope=autoupdate"
+      - traefik.enable: true
+      - traefik.http.routers.rocketchat.entrypoints: http
+      - traefik.http.routers.rocketchat.rule: Host(`chat.tschannerl.com`)
+      - traefik.http.middlewares.rocketchat-https-redirect.redirectscheme.scheme: https
+      - traefik.http.middlewares.rocketchat-https-redirect.redirectscheme.port: 443
+      - traefik.http.routers.rocketchat.middlewares: traefik-https-redirect
+      - traefik.http.routers.rocketchat-secure.entrypoints: https
+      - traefik.http.routers.rocketchat-secure.rule: Host(`chat.tschannerl.com`)
+      - traefik.http.routers.rocketchat-secure.tls: true
+      - traefik.http.routers.rocketchat-secure.tls.certresolver: mytlschallenge
+      - traefik.http.routers.rocketchat-secure.service: rocketchat
+      - traefik.http.services.rocketchat.loadbalancer.server.port: 3000
+      - traefik.docker.network: web
+      - com.centurylinklabs.watchtower.scope: autoupdate
 
   rocketchat-mongodb:
     container_name: rocketchat-mongodb
@@ -50,8 +49,8 @@ services:
       - ./data/rocketchat/mongo/dump:/dump
       - ./data/rocketchat/mongo/configdb:/data/configdb
     labels:
-      - traefik.enable=false
-      - "com.centurylinklabs.watchtower.scope=autoupdate"
+      - traefik.enable=: false
+      - com.centurylinklabs.watchtower.scope: autoupdate
     dns:
       - "172.18.254.254"
       - "1.1.1.1"
@@ -73,4 +72,4 @@ services:
       - ./data/rocketchat/mongoinit/data:/data/db
       - ./data/rocketchat/mongoinit/configdb:/data/configdb
     labels:
-      - "com.centurylinklabs.watchtower.scope=autoupdate"
+      - com.centurylinklabs.watchtower.scope: autoupdate

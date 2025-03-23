@@ -20,9 +20,6 @@ services:
       - rocketchat-mongodb
     networks:
       - web
-    dns:
-      - "172.18.254.254"
-      - "1.1.1.1"
     labels:
       traefik.enable: true
       traefik.http.routers.rocketchat.entrypoints: http
@@ -30,7 +27,7 @@ services:
       traefik.http.middlewares.rocketchat-https-redirect.redirectscheme.scheme: https
       traefik.http.middlewares.rocketchat-https-redirect.redirectscheme.port: 443
       traefik.http.routers.rocketchat.middlewares: rocketchat-https-redirect
-      traefik.http.routers.rocketchat-secure.entrypoints: https
+      traefik.http.routers.rocketchat-secure.entrypoints: https,https2
       traefik.http.routers.rocketchat-secure.rule: Host(`chat.tschannerl.com`)
       traefik.http.routers.rocketchat-secure.tls: true
       traefik.http.routers.rocketchat-secure.tls.certresolver: mytlschallenge

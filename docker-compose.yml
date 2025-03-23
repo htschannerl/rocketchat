@@ -38,9 +38,13 @@ services:
 
   rocketchat-mongodb:
     container_name: rocketchat-mongodb
-    image: mongo:5.0
-    command: mongod --oplogSize 128 --replSet rs0
+    image: mongo:7.0
     restart: always
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all", "--oplogSize", "128"]
+    healthcheck:
+      test: echo 'rs.initiate()' | mongosh --quiet || exit 1
+      interval: 10s
+      retries: 5
     volumes:
       - ./data/rocketchat/mongo/data:/data/db
       - ./data/rocketchat/mongo/dump:/dump
@@ -53,7 +57,7 @@ services:
 
   rocketchat-mongo-init-replica:
     container_name: rocketchat-mongo-init-replica
-    image: mongo:4.4
+    image: mongo:5.0
     command: 'bash -c "for i in `seq 1 30`; do mongo rocketchat-mongodb/rocketchat --eval \"rs.initiate({ _id: ''rs0'', members: [ { _id: 0, host: ''localhost:27017'' } ]})\" && s=$$? && break || s=$$?; echo \"Tried $$i times. Waiting 5 secs...\"; sleep 5; done; (exit $$s)"'
     depends_on:
       - rocketchat-mongodb

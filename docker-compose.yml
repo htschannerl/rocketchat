@@ -55,16 +55,3 @@ services:
     networks:
       - web
 
-  rocketchat-mongo-init-replica:
-    container_name: rocketchat-mongo-init-replica
-    image: mongo:5.0
-    command: 'bash -c "for i in `seq 1 30`; do mongo rocketchat-mongodb/rocketchat --eval \"rs.initiate({ _id: ''rs0'', members: [ { _id: 0, host: ''localhost:27017'' } ]})\" && s=$$? && break || s=$$?; echo \"Tried $$i times. Waiting 5 secs...\"; sleep 5; done; (exit $$s)"'
-    depends_on:
-      - rocketchat-mongodb
-    networks:
-      - web
-    volumes:
-      - ./data/rocketchat/mongoinit/data:/data/db
-      - ./data/rocketchat/mongoinit/configdb:/data/configdb
-    labels:
-      com.centurylinklabs.watchtower.scope: autoupdate

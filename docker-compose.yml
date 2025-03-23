@@ -38,6 +38,7 @@ services:
 
   rocketchat-mongodb:
     container_name: rocketchat-mongodb
+    hostname: rocketchat-mongodb
     image: mongo:7.0
     restart: always
     command: ["mongod", "--replSet", "rs0", "--bind_ip_all", "--oplogSize", "128"]
